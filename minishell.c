@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <errno.h>
 
 #define NV 20			/* max number of command tokens */
 #define NL 100			/* input buffer size */
@@ -65,20 +66,47 @@ int main(int argk, char *argv[], char *envp[])
 	      break;
       }
     }
+    
+    if (v[0] && strcmp(v[0], "cd") == 0){
+      if (chdir(v[1] ? v[1] : getenv("HOME")) == -1 ){
+        perror("chdir");
+      continue;
+      }
+    }
+
+    int background = 0;
+    if (i > 1 && v[i-1] && strcmp(v[i-1], "&") == 0){
+      background = 1;
+      v[i-1] = NULL;
+    }
     /* assert i is number of tokens + 1 */
 
     /* fork a child process to exec the command in v[0] */
     switch (frkRtnVal = fork()) {
       case -1:			/* fork returns error to parent process */
       {
+        perror("fork");
 	      break;
       }
       case 0:			/* code executed only by child process */
       {
 	      execvp(v[0], v);
+        perror("execvp");
+        _exit(1);
       }
       default:			/* code executed only by parent process */
       {
+        if (!background){
+          if (waitpid(frkRtnVal, NULL, 0) == -1){
+            perror("waitpid");
+          }
+        }
+        int status;
+        pid_t done;
+        while ((done = waitpid(-1, &status, WNOHANG)) > 0){
+          printf("Done %d\n", done);
+          fflush(stdout);
+        }
       	wait(0);
         // REMOVE PRINTF STATEMENT BEFORE SUBMISSION
         //printf("%s done \n", v[0]);
