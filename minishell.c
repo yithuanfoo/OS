@@ -25,7 +25,7 @@ char            line[NL];	/* command input buffer */
 struct job { pid_t pid; int id;};
 static struct job jobs[MAXJ];
 static int njobs = 0;
-static int next_job_int = 1;
+static int next_job_int= 1;
 
 static void remember_job(pid_t pid){
   if (njobs < MAXJ) {
@@ -121,17 +121,22 @@ int main(int argk, char *argv[], char *envp[])
       }
       default:			/* code executed only by parent process */
       {
-        if (!background){
-          if (waitpid(frkRtnVal, NULL, 0) == -1){
+        if (background){
+          remember_job(frkRtnVal);
+        } else {
+          int status;
+          if (waitpid(frkRtnVal, &status, 0) == -1)
             perror("waitpid");
-          }
         }
-        int status;
+
+        int status_bg;
         pid_t done;
-        while ((done = waitpid(-1, &status, WNOHANG)) > 0){
-          printf("Done %d\n", done);
+        while ((done = waitpid(-1, &status_bg, WNOHANG)) > 0){
+          int id = forget_job(done);
+          printf("[%d] %d\n", id ? id : 0, done);
           fflush(stdout);
         }
+        if (done == -1 && errno != ECHILD) perror("waitpid");
         // REMOVE PRINTF STATEMENT BEFORE SUBMISSION
         //printf("%s done \n", v[0]);
     	  break;
