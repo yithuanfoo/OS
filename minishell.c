@@ -37,6 +37,17 @@ static int remember_job(pid_t pid){
   return id;
 }
 
+static void wait_for_all_jobs(void){
+  int status;
+  pid_t pid;
+  while ((pid = waitpid(-1, &status, 0)) > 0){
+    int id = forget_job(pid);
+    printf("[%d] %d\n", id ? id : 0, pid);
+    fflush(stdout);
+  }
+  if (pid == -1 && errno != ECHILD) perror("waitpid");
+}
+
 static int forget_job(pid_t pid){
   for (int k = 0; k < njobs; k++){
     if (jobs[k].pid == pid){
@@ -76,6 +87,11 @@ int main(int argk, char *argv[], char *envp[])
   while (1) {			/* do Forever */
     prompt();
     fgets(line, NL, stdin);
+    if (!fgets(line, NL, stdin)) {
+      if (ferror(stdin)) perror("fgets");
+      wait_for_all_jobs();
+      exit(0);
+    }
     fflush(stdin);
 
     // This if() required for gradescope
