@@ -17,10 +17,35 @@
 #include <signal.h>
 #include <errno.h>
 
+#define MAXJ 128
 #define NV 20			/* max number of command tokens */
 #define NL 100			/* input buffer size */
 char            line[NL];	/* command input buffer */
 
+struct job { pid_t pid; int id;};
+static struct job jobs[MAXJ];
+static int njobs = 0;
+static int next_job_int = 1;
+
+static void remember_job(pid_t pid){
+  if (njobs < MAXJ) {
+    jobs[njobs].pid = pid;
+    jobs[njobs].id = next_job_int++;
+    njobs++;
+  }
+}
+
+static int forget_job(pid_t pid){
+  for (int k = 0; k < njobs; k++){
+    if (jobs[k].pid == pid){
+      int id = jobs[k].id;
+      jobs[k] = jobs[njobs - 1];
+      njobs--;
+      return id;
+    }
+  }
+  return 0;
+}
 
 /*
 	shell prompt
