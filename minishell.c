@@ -22,31 +22,49 @@
 #define NL 100			/* input buffer size */
 char            line[NL];	/* command input buffer */
 
-struct job { pid_t pid; int id;};
+struct job {pid_t pid; int id; char cmd[NL];};
 static struct job jobs[MAXJ];
 static int njobs = 0;
 static int next_job_int= 1;
 
-static int remember_job(pid_t pid){
+static int remember_job(pid_t pid, const char *cmd){
   int id = next_job_int++;
   if (njobs < MAXJ) {
     jobs[njobs].pid = pid;
     jobs[njobs].id = id;
+    if (cmd) {
+      strncpy(jobs[njobs].cmd, cmd, NL-1);
+      jobs[njobs].cmd[NL-1] = '\0';
+    } else {
+      jobs[njobs].cmd[0] = '\0';
+    }
     njobs++;
   }
   return id;
 }
 
-static int forget_job(pid_t pid){
+static int forget_job(pid_t pid, char *out_cmd){
   for (int k = 0; k < njobs; k++){
     if (jobs[k].pid == pid){
       int id = jobs[k].id;
+      if (out_cmd){
+        strncpy(out_cmd, jobs[k].cmd, NL-1);
+        out_cmd[NL-1] = '\0';
+      }
       jobs[k] = jobs[njobs - 1];
       njobs--;
       return id;
     }
   }
+  if (out_cmd) out_cmd[0] = '\0';
   return 0;
+}
+static void trim_cmd(char *s) {
+  size_t n = strlen(s);
+  while (n && (s[n-1] == '\n' || s[n-1] == ' ' || s[n-1] == '\t' ||
+               s[n-1] == '&'  || s[n-1] == ';')) {
+    s[--n] = '\0';
+  }
 }
 
 /*
@@ -57,9 +75,16 @@ static void wait_for_all_jobs(void){
   int status;
   pid_t done;
   while ((done = waitpid(-1, &status, WNOHANG)) > 0){
-    int id = forget_job(done);
-    if (!id) id = remember_job(done);
-    printf("[%d] %d\n", id, done);
+    //int id = forget_job(done);
+    //if (!id) id = remember_job(done);
+    //printf("[%d] %d\n", id, done);
+    char cmd[NL];
+    int id = forget_job(done, cmd);
+    if (!id) {
+      id = next_job_int++;
+      snprintf(cmd, NL, "%d", (int)done);
+    }
+    printf("[%d]+ Done %s\n", id, cmd);
     fflush(stdout);
   }
   if (done == -1 && errno != ECHILD) perror("waitpid");
@@ -131,6 +156,12 @@ int main(int argk, char *argv[], char *envp[])
       background = 1;
       v[i-1] = NULL;
     }
+
+    char cmdcopy[NL];
+    strncpy(cmdcopy, line, NL-1);
+    cmdcopy[NL-1] = '\0';
+    trim_cmd(cmdcopy);
+
     /* assert i is number of tokens + 1 */
 
     /* fork a child process to exec the command in v[0] */
@@ -149,7 +180,7 @@ int main(int argk, char *argv[], char *envp[])
       default:			/* code executed only by parent process */
       {
         if (background){
-          int job_id = remember_job(frkRtnVal);
+          int job_id = remember_job(frkRtnVal, cmdcopy);
           printf("[%d] %d\n", job_id, frkRtnVal);
           fflush(stdout);
         } else {
