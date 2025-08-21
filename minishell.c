@@ -68,10 +68,10 @@ int main(int argk, char *argv[], char *envp[])
     }
     
     if (v[0] && strcmp(v[0], "cd") == 0){
-      if (chdir(v[1] ? v[1] : getenv("HOME")) == -1 ){
+      if (chdir(v[1] ? v[1] : getenv("HOME")) == -1)
         perror("chdir");
       continue;
-      }
+      
     }
 
     int background = 0;
@@ -107,7 +107,6 @@ int main(int argk, char *argv[], char *envp[])
           printf("Done %d\n", done);
           fflush(stdout);
         }
-      	wait(0);
         // REMOVE PRINTF STATEMENT BEFORE SUBMISSION
         //printf("%s done \n", v[0]);
     	  break;
