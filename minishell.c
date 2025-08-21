@@ -97,6 +97,13 @@ int main(int argk, char *argv[], char *envp[])
     if (v[0] && strcmp(v[0], "cd") == 0){
       if (chdir(v[1] ? v[1] : getenv("HOME")) == -1)
         perror("chdir");
+      int status_bg; pid_t done;
+      while ((done = waitpid(-1, &status_bg, WNOHANG)) > 0){
+        int id = forget_job(done);
+        printf("[%d] %d\n", id ? id : 0, done);
+        fflush(stdout);
+      }
+      if (done == -1 && errno != ECHILD) perror ("waitpid");
       continue;
       
     }
@@ -136,9 +143,9 @@ int main(int argk, char *argv[], char *envp[])
         int status_bg;
         pid_t done;
         while ((done = waitpid(-1, &status_bg, WNOHANG)) > 0){
-          forget_job(done);
-          //printf("[%d] %d\n", id ? id : 0, done);
-          //fflush(stdout);
+          int id = forget_job(done);
+          printf("[%d] %d\n", id ? id : 0, done);
+          fflush(stdout);
         }
         if (done == -1 && errno != ECHILD) perror("waitpid");
         // REMOVE PRINTF STATEMENT BEFORE SUBMISSION
