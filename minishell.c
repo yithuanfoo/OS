@@ -136,7 +136,7 @@ int main(int argk, char *argv[], char *envp[])
         int status_bg;
         pid_t done;
         while ((done = waitpid(-1, &status_bg, WNOHANG)) > 0){
-          int id = forget_job(done);
+          forget_job(done);
           //printf("[%d] %d\n", id ? id : 0, done);
           //fflush(stdout);
         }
