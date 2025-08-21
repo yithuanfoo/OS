@@ -149,10 +149,9 @@ int main(int argk, char *argv[], char *envp[])
       default:			/* code executed only by parent process */
       {
         if (background){
-          (void)remember_job(frkRtnVal);
-          //int job_id = remember_job(frkRtnVal);
-          //printf("[%d] %d\n", job_id, frkRtnVal);
-          //fflush(stdout);
+          int job_id = remember_job(frkRtnVal);
+          printf("[%d] %d\n", job_id, frkRtnVal);
+          fflush(stdout);
         } else {
           int status_fg;
           if (waitpid(frkRtnVal, &status_fg, 0) == -1)
