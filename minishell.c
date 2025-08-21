@@ -49,20 +49,21 @@ static int forget_job(pid_t pid){
   return 0;
 }
 
-static void wait_for_all_jobs(void){
-  int status;
-  pid_t pid;
-  while ((pid = waitpid(-1, &status, 0)) > 0){
-    int id = forget_job(pid);
-    printf("[%d] %d\n", id ? id : 0, pid);
-    fflush(stdout);
-  }
-  if (pid == -1 && errno != ECHILD) perror("waitpid");
-}
-
 /*
 	shell prompt
  */
+
+static void wait_for_all_jobs(void){
+  int status;
+  pid_t done;
+  while ((done = waitpid(-1, &status, WNOHANG)) > 0){
+    int id = forget_job(done);
+    if (!id) id = remember_job(done);
+    printf("[%d] %d\n", id, done);
+    fflush(stdout);
+  }
+  if (done == -1 && errno != ECHILD) perror("waitpid");
+}
 
 void prompt(void)
 {
@@ -86,19 +87,17 @@ int main(int argk, char *argv[], char *envp[])
 
   while (1) {			/* do Forever */
     prompt();
-    fgets(line, NL, stdin);
-    if (!fgets(line, NL, stdin)) {
+    if (!fgets(line, NL, stdin)){
       if (ferror(stdin)) perror("fgets");
-      wait_for_all_jobs();
       exit(0);
     }
-    fflush(stdin);
 
     // This if() required for gradescope
     if (feof(stdin)) {		/* non-zero on EOF  */
       exit(0);
     }
-    if (line[0] == '#' || line[0] == '\n' || line[0] == '\000'){
+    if (line[0] == '#' || line[0] == '\n' || line[0] == '\0'){
+      wait_for_all_jobs();
       continue;			/* to prompt */
     }
 
@@ -113,16 +112,19 @@ int main(int argk, char *argv[], char *envp[])
     if (v[0] && strcmp(v[0], "cd") == 0){
       if (chdir(v[1] ? v[1] : getenv("HOME")) == -1)
         perror("chdir");
-      int status_bg; pid_t done;
-      while ((done = waitpid(-1, &status_bg, WNOHANG)) > 0){
-        int id = forget_job(done);
-        printf("[%d] %d\n", id ? id : 0, done);
-        fflush(stdout);
-      }
-      if (done == -1 && errno != ECHILD) perror ("waitpid");
+      wait_for_all_jobs();
       continue;
-      
     }
+      //int status_bg; pid_t done;
+      //while ((done = waitpid(-1, &status_bg, WNOHANG)) > 0){
+        //int id = forget_job(done);
+        //printf("[%d] %d\n", id ? id : 0, done);
+        //fflush(stdout);
+      //}
+      //if (done == -1 && errno != ECHILD) perror ("waitpid");
+      //continue;
+      
+    //}
 
     int background = 0;
     if (i > 1 && v[i-1] && strcmp(v[i-1], "&") == 0){
@@ -147,26 +149,29 @@ int main(int argk, char *argv[], char *envp[])
       default:			/* code executed only by parent process */
       {
         if (background){
-          int job_id = remember_job(frkRtnVal);
-          printf("[%d] %d\n", job_id, frkRtnVal);
-          fflush(stdout);
+          (void)remember_job(frkRtnVal);
+          //int job_id = remember_job(frkRtnVal);
+          //printf("[%d] %d\n", job_id, frkRtnVal);
+          //fflush(stdout);
         } else {
           int status_fg;
           if (waitpid(frkRtnVal, &status_fg, 0) == -1)
             perror("waitpid");
         }
 
-        int status_bg;
-        pid_t done;
-        while ((done = waitpid(-1, &status_bg, WNOHANG)) > 0){
-          int id = forget_job(done);
-          printf("[%d] %d\n", id ? id : 0, done);
-          fflush(stdout);
-        }
-        if (done == -1 && errno != ECHILD) perror("waitpid");
+        wait_for_all_jobs();
+        break;
+        //int status_bg;
+        //pid_t done;
+        //while ((done = waitpid(-1, &status_bg, WNOHANG)) > 0){
+          //int id = forget_job(done);
+          //printf("[%d] %d\n", id ? id : 0, done);
+          //fflush(stdout);
+        //}
+        //if (done == -1 && errno != ECHILD) perror("waitpid");
         // REMOVE PRINTF STATEMENT BEFORE SUBMISSION
         //printf("%s done \n", v[0]);
-    	  break;
+    	  //break;
       }
     }				/* switch */
   }				/* while */
