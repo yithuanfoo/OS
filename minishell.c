@@ -27,12 +27,14 @@ static struct job jobs[MAXJ];
 static int njobs = 0;
 static int next_job_int= 1;
 
-static void remember_job(pid_t pid){
+static int remember_job(pid_t pid){
+  int id = next_job_int++;
   if (njobs < MAXJ) {
     jobs[njobs].pid = pid;
-    jobs[njobs].id = next_job_int++;
+    jobs[njobs].id = id;
     njobs++;
   }
+  return id;
 }
 
 static int forget_job(pid_t pid){
@@ -122,10 +124,12 @@ int main(int argk, char *argv[], char *envp[])
       default:			/* code executed only by parent process */
       {
         if (background){
-          remember_job(frkRtnVal);
+          int job_id = remember_job(frkRtnVal);
+          printf("[%d] %d\n", job_id, frkRtnVal);
+          fflush(stdout);
         } else {
-          int status;
-          if (waitpid(frkRtnVal, &status, 0) == -1)
+          int status_fg;
+          if (waitpid(frkRtnVal, &status_fg, 0) == -1)
             perror("waitpid");
         }
 
@@ -133,8 +137,8 @@ int main(int argk, char *argv[], char *envp[])
         pid_t done;
         while ((done = waitpid(-1, &status_bg, WNOHANG)) > 0){
           int id = forget_job(done);
-          printf("[%d] %d\n", id ? id : 0, done);
-          fflush(stdout);
+          //printf("[%d] %d\n", id ? id : 0, done);
+          //fflush(stdout);
         }
         if (done == -1 && errno != ECHILD) perror("waitpid");
         // REMOVE PRINTF STATEMENT BEFORE SUBMISSION
