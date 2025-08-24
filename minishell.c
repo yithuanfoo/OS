@@ -22,7 +22,7 @@
 #define NL 100			/* input buffer size */
 char            line[NL];	/* command input buffer */
 
-struct job {pid_t pid; int id; char cmd[NL];};
+struct job { pid_t pid; int id; char cmd[NL]; };
 static struct job jobs[MAXJ];
 static int njobs = 0;
 static int next_job_int= 1;
@@ -47,7 +47,7 @@ static int forget_job(pid_t pid, char *out_cmd){
   for (int k = 0; k < njobs; k++){
     if (jobs[k].pid == pid){
       int id = jobs[k].id;
-      if (out_cmd){
+      if (out_cmd){ 
         strncpy(out_cmd, jobs[k].cmd, NL-1);
         out_cmd[NL-1] = '\0';
       }
@@ -56,15 +56,16 @@ static int forget_job(pid_t pid, char *out_cmd){
       return id;
     }
   }
-  if (out_cmd) out_cmd[0] = '\0';
+  if (out_cmd){
+    out_cmd[0] = '\0';
+  }
   return 0;
 }
-static void trim_cmd(char *s) {
+
+static void trim_cmd(char *s){
   size_t n = strlen(s);
-  while (n && (s[n-1] == '\n' || s[n-1] == ' ' || s[n-1] == '\t' ||
-               s[n-1] == '&'  || s[n-1] == ';')) {
+  while (n && (s[n-1] == '\n' || s[n-1] == ' ' || s[n-1] == '\t' || s[n-1] == '&' || s[n-1] == ';'))
     s[--n] = '\0';
-  }
 }
 
 /*
@@ -75,9 +76,6 @@ static void wait_for_all_jobs(void){
   int status;
   pid_t done;
   while ((done = waitpid(-1, &status, WNOHANG)) > 0){
-    //int id = forget_job(done);
-    //if (!id) id = remember_job(done);
-    //printf("[%d] %d\n", id, done);
     char cmd[NL];
     int id = forget_job(done, cmd);
     if (!id) {
@@ -105,7 +103,7 @@ int main(int argk, char *argv[], char *envp[])
 {
    int             frkRtnVal;	    /* value returned by fork sys call */
   char           *v[NV];	        /* array of pointers to command line tokens */
-  char           *sep = " \t\n;";  /* command line token separators    */
+  char           *sep = " \t\n";  /* command line token separators    */
   int             i;		          /* parse index */
 
     /* prompt for and process one command line at a time  */
@@ -156,7 +154,7 @@ int main(int argk, char *argv[], char *envp[])
       background = 1;
       v[i-1] = NULL;
     }
-
+    
     char cmdcopy[NL];
     strncpy(cmdcopy, line, NL-1);
     cmdcopy[NL-1] = '\0';
