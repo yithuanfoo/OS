@@ -103,7 +103,7 @@ int main(int argk, char *argv[], char *envp[])
 {
    int             frkRtnVal;	    /* value returned by fork sys call */
   char           *v[NV];	        /* array of pointers to command line tokens */
-  char           *sep = " \t\n";  /* command line token separators    */
+  //char           *sep = " \t\n";  /* command line token separators    */
   int             i;		          /* parse index */
 
     /* prompt for and process one command line at a time  */
