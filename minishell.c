@@ -115,7 +115,6 @@ int main(int argk, char *argv[], char *envp[])
       exit(0);
     }
 
-    // This if() required for gradescope
     if (feof(stdin)) {		/* non-zero on EOF  */
       exit(0);
     }
@@ -124,6 +123,27 @@ int main(int argk, char *argv[], char *envp[])
       continue;			/* to prompt */
     }
 
+    char *save_outer = NULL;
+    char *cmd = strtok_r(line, ";\n", &save_outer);
+    while (cmd){
+      char chunk[NL];
+      strncpy(chunk, cmd, NL-1);
+      chunk[NL-1] = '\0';
+
+      char *save_inner = NULL;
+      v[0] = strtok_r(chunk, " \t\n", &save_inner);
+      for (i = 1; i < NV; i++){
+        v[i] = strtok_r(NULL, " \t\n", &save_inner);
+        if (!v[i]) break;
+      }
+    }
+
+    if (!v[0]){
+      cmd = strtok_r(NULL, ";\n", &save_outer);
+      continue;
+    }
+
+    /*
     v[0] = strtok(line, sep);
     for (i = 1; i < NV; i++) {
       v[i] = strtok(NULL, sep);
@@ -138,6 +158,8 @@ int main(int argk, char *argv[], char *envp[])
       wait_for_all_jobs();
       continue;
     }
+    */
+
       //int status_bg; pid_t done;
       //while ((done = waitpid(-1, &status_bg, WNOHANG)) > 0){
         //int id = forget_job(done);
@@ -148,6 +170,14 @@ int main(int argk, char *argv[], char *envp[])
       //continue;
       
     //}
+
+    if (strcmp(v[0], "cd") == 0){
+      if (chdir(v[1] ? v[1] : getenv("HOME")) == -1)
+        perror("chdir");
+      wait_for_all_jobs();
+      cmd = strtok_r(NULL, ";\n", &save_outer);
+      continue;
+    }
 
     int background = 0;
     if (i > 1 && v[i-1] && strcmp(v[i-1], "&") == 0){
@@ -201,6 +231,9 @@ int main(int argk, char *argv[], char *envp[])
         //printf("%s done \n", v[0]);
     	  //break;
       }
+
+      cmd = strtok_r(NULL, ";\n", &save_outer);
+
     }				/* switch */
   }				/* while */
 }				/* main */
