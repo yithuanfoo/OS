@@ -129,14 +129,14 @@ int main(int argk, char *argv[], char *envp[])
       char chunk[NL];
       strncpy(chunk, cmd, NL-1);
       chunk[NL-1] = '\0';
-
+    
       char *save_inner = NULL;
       v[0] = strtok_r(chunk, " \t\n", &save_inner);
       for (i = 1; i < NV; i++){
         v[i] = strtok_r(NULL, " \t\n", &save_inner);
         if (!v[i]) break;
       }
-    }
+    
 
     if (!v[0]){
       cmd = strtok_r(NULL, ";\n", &save_outer);
@@ -231,7 +231,7 @@ int main(int argk, char *argv[], char *envp[])
         //printf("%s done \n", v[0]);
     	  //break;
       }
-
+  }
       cmd = strtok_r(NULL, ";\n", &save_outer);
 
     }				/* switch */
