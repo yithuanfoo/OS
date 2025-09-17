@@ -11,6 +11,7 @@ class RandMMU(MMU):
         self.disk_writes = 0
         self.page_faults = 0
         self.debug = False
+        self.LRU_order = []
 
     def set_debug(self):
         # TODO: Implement the method to set debug mode
