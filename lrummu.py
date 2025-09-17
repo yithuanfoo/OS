@@ -5,13 +5,20 @@ from mmu import MMU
 class LruMMU(MMU):
     def __init__(self, frames):
         # TODO: Constructor logic for LruMMU
+
+        #total number of frames in memory
         self.num_frames = frames
+        #list of frames
         self.frames = [None] * frames
+        #mapping of page to frames
         self.page_to_frame = {}
+        #Counters for disk reads, disk writes and page faults
         self.disk_reads = 0
         self.disk_writes = 0
         self.page_faults = 0
+        #flag controlling debug mode
         self.debug = False
+        #List to track least recently used pages, initialised as an empty vector
         self.LRU_list = []
 
     def set_debug(self):
