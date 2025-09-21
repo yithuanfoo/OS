@@ -1,0 +1,31 @@
+[MISS] Write page 0 -> page fault
+Loaded page 0 into frame 0 (dirty=1)
+[MISS] Read  page 1 -> page fault
+Loaded page 1 into frame 1 (dirty=0)
+[MISS] Read  page 2 -> page fault
+Loaded page 2 into frame 2 (dirty=0)
+[MISS] Read  page 3 -> page fault
+Loaded page 3 into frame 3 (dirty=0)
+[HIT]  Write page 2 in frame 2 (dirty=1)
+[MISS] Read  page 4 -> page fault
+Evict page 0 from frame 0 (dirty -> write to disk)
+Loaded page 4 into frame 0 (dirty=0)
+[HIT]  Read  page 3 in frame 3 (dirty=0)
+[HIT]  Write page 3 in frame 3 (dirty=1)
+[MISS] Read  page 0 -> page fault
+Evict page 1 from frame 1 (clean)
+Loaded page 0 into frame 1 (dirty=0)
+[MISS] Read  page 1 -> page fault
+Evict page 2 from frame 2 (dirty -> write to disk)
+Loaded page 1 into frame 2 (dirty=0)
+[MISS] Read  page 5 -> page fault
+Evict page 4 from frame 0 (clean)
+Loaded page 5 into frame 0 (dirty=0)
+[MISS] Read  page 2 -> page fault
+Evict page 0 from frame 1 (clean)
+Loaded page 2 into frame 1 (dirty=0)
+total memory frames: 4
+events in trace: 12
+total disk reads: 9
+total disk writes: 2
+page fault rate: 0.7500
