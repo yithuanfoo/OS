@@ -45,8 +45,6 @@ class ClockMMU(MMU):
         """
         N = self.num_frames
         assert N > 0
-        scanned = 0
-        dirty_candidate = None
 
         # Loop until a victim is found
         while True:
@@ -61,27 +59,12 @@ class ClockMMU(MMU):
             if meta['ref'] == 1:
                 # Second chance: clear and move on
                 meta['ref'] = 0
+                self.hand = (self.hand + 1) % N
             else:
-                # ref == 0 -> candidate
-                if not meta['dirty']:
-                    # clean victim
-                    idx = f
-                    self.hand = (f + 1) % N
-                    return self._evict_and_return(idx)
-                # keep first dirty candidate in this sweep
-                if dirty_candidate is None:
-                    dirty_candidate = f
-
-            # advance hand
-            self.hand = (self.hand + 1) % N
-            scanned += 1
-
-            if scanned >= N:
-                if dirty_candidate is not None:
-                    # Evict the first dirty zero-ref
-                    idx = dirty_candidate
-                    self.hand = (idx + 1) % N
-                    return self._evict_and_return(idx)
+                # ref == 0, victim
+                idx = f
+                self.hand = (f + 1) % N
+                return self._evict_and_return(idx)
 
     # Helper function to evict and return the frame index
     def _evict_and_return(self, idx):
@@ -141,21 +124,6 @@ class ClockMMU(MMU):
         idx = self._alloc_frame()
         self._load(idx, page_number, dirty=False)
 
-    def _load(self, idx, page_number, dirty):
-        """Place the page into frame idx, mark ref=1 on access, and count disk read."""
-        if self.num_frames == 0:
-            # No storage possible; just count the disk read for the simulation.
-            self.disk_reads += 1
-            if self.debug:
-                print(f"Loaded page {page_number} into frame 0 (simulated, dirty={int(dirty)})")
-            return
-
-        # Load the page into the frame
-        self.frames[idx] = {'page': page_number, 'dirty': dirty, 'ref': 1}
-        self.page_to_frame[page_number] = idx
-        self.disk_reads += 1
-        if self.debug:
-            print(f"Loaded page {page_number} into frame {idx} (dirty={int(dirty)})")
     
     def write_memory(self, page_number):
         # TODO: Implement the method to write memory
