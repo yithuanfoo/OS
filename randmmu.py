@@ -33,7 +33,7 @@ class RandMMU(MMU):
             if self.debug:  # If debug mode is on, print a debug message showing that its a hit
                 frame_num = self.page_table[page_number]    # Gets the frame number
                 print(f"PAGE HIT: {page_number} is in frame {frame_num}, dirty={self.frames[frame_num]['dirty']}")  # Prints debug message showing it is a hit and whether the frame is clean or dirty
-                return
+            return
         
         # If the page is not in memory
         self.page_faults += 1   # Page is not in memory and therefore increment page fault conuter
