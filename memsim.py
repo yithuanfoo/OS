@@ -83,12 +83,13 @@ def main():
 
     # TODO: Print results
     print(f"total memory frames: {frames}")
-    print(f"events in trace: {no_events}")
-    print(f"total disk reads: {mmu.get_total_disk_reads()}")
-    print(f"total disk writes: {mmu.get_total_disk_writes()}")
+    #print(f"events in trace: {no_events}")
+    #print(f"total disk reads: {mmu.get_total_disk_reads()}")
+    #print(f"total disk writes: {mmu.get_total_disk_writes()}")
     print("page fault rate: ", end="")
     print("{0:.4f}".format(mmu.get_total_page_faults() / no_events))
 
 if __name__ == "__main__":
     main()
                     
+
