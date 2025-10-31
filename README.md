@@ -113,4 +113,4 @@ speedup of up to 8.4x, confirming that the parallel mergesort implementation was
 ## Sources Used
 
 https://www.khanacademy.org/computing/computer-science/algorithms/merge-sort/a/overview-of-merge-sort, referenced in the construction of my_mergesort and merge functions, just for an overview of the actual merge sorting process
-
+https://www.geeksforgeeks.org/dsa/merge-sort/, referenced for my_mergesort and merge function
